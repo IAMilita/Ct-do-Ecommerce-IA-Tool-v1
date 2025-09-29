@@ -3,10 +3,12 @@ import React, { useState, useMemo } from 'react';
 import { FinalImage } from '../types';
 import { DownloadIcon } from './icons/DownloadIcon';
 import Lightbox from './Lightbox';
+import { getFormattedFileName } from '../utils/imageUtils';
 
 interface ImageGalleryProps {
   results: FinalImage[];
   onStartOver: () => void;
+  productTitle: string;
 }
 
 const DownloadButton: React.FC<{ imageUrl: string; imageName: string }> = ({ imageUrl, imageName }) => {
@@ -31,11 +33,12 @@ const DownloadButton: React.FC<{ imageUrl: string; imageName: string }> = ({ ima
   );
 };
 
-export default function ImageGallery({ results, onStartOver }: ImageGalleryProps) {
+export default function ImageGallery({ results, onStartOver, productTitle }: ImageGalleryProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const allImages = useMemo(() => results.flatMap(result => result.images), [results]);
+  const baseFileName = useMemo(() => getFormattedFileName(productTitle), [productTitle]);
 
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
@@ -57,7 +60,7 @@ export default function ImageGallery({ results, onStartOver }: ImageGalleryProps
       setTimeout(() => {
         const link = document.createElement('a');
         link.href = imgSrc;
-        link.download = `ct-ecommerce-imagem-${index + 1}.jpg`;
+        link.download = `${baseFileName}.foto${index + 1}.jpg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -94,7 +97,7 @@ export default function ImageGallery({ results, onStartOver }: ImageGalleryProps
                       className="w-full h-full object-cover rounded-lg shadow-lg transition-transform group-hover:scale-105"
                     />
                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
-                    <DownloadButton imageUrl={imgSrc} imageName={`ct-ecommerce-cena-${result.scene.replace(/\s/g, '_')}-${imgIndex + 1}.jpg`} />
+                    <DownloadButton imageUrl={imgSrc} imageName={`${baseFileName}.foto${currentIndex + 1}.jpg`} />
                   </div>
                 )
               })}

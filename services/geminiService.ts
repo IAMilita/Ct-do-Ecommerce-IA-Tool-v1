@@ -10,6 +10,7 @@ import {
     TITLE_GENERATION_PROMPT_TEMPLATE,
     DESCRIPTION_GENERATION_PROMPT_TEMPLATE,
     VIDEO_SCENE_GENERATION_PROMPT_TEMPLATE,
+    AUDIO_SCRIPT_GENERATION_PROMPT_TEMPLATE,
 } from '../prompts';
 import { GeneratedScene, GeneratedTitles, VideoScene } from "../types";
 
@@ -285,5 +286,22 @@ export const getPollingVideosOperation = async (operation: any) => {
     } catch (error) {
         console.error("Erro ao pesquisar operação de vídeo:", error);
         throw new Error("Falha ao verificar o status da geração do vídeo.");
+    }
+};
+
+export const generateVideoAudioScript = async (scenes: VideoScene[]): Promise<string> => {
+    try {
+        const prompt = AUDIO_SCRIPT_GENERATION_PROMPT_TEMPLATE(scenes);
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+
+        return response.text;
+        
+    } catch (error) {
+        console.error("Erro ao gerar roteiro de áudio:", error);
+        throw new Error("Falha ao gerar o roteiro de áudio do vídeo.");
     }
 };

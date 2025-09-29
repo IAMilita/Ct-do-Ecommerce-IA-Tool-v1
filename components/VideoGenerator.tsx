@@ -2,8 +2,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { VideoIcon } from './icons/VideoIcon';
 import { UploadIcon } from './icons/UploadIcon';
-import { generateVideoScenes, generateSingleProductVideo, getPollingVideosOperation } from '../services/geminiService';
-import { fileToBase64 } from '../utils/imageUtils';
+import { generateVideoScenes, generateSingleProductVideo, getPollingVideosOperation, generateVideoAudioScript } from '../services/geminiService';
+import { fileToBase64, getFormattedFileName } from '../utils/imageUtils';
 import { VideoScene } from '../types';
 import Loader from './Loader';
 
@@ -24,6 +24,8 @@ export default function VideoGenerator({ productDescription }: VideoGeneratorPro
     const [isLoadingVideo, setIsLoadingVideo] = useState(false);
     const [videoUrls, setVideoUrls] = useState<(string | null)[]>([]);
     const [loadingMessage, setLoadingMessage] = useState('');
+    const [audioScript, setAudioScript] = useState<string | null>(null);
+    const [isLoadingAudioScript, setIsLoadingAudioScript] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,15 +53,22 @@ export default function VideoGenerator({ productDescription }: VideoGeneratorPro
     const handleSceneGeneration = async () => {
         setError(null);
         setIsLoadingScenes(true);
+        setAudioScript(null);
         setScenes([]);
         try {
             const imagesForApi = images.map(img => ({ base64: img.base64, mimeType: img.file.type }));
             const generatedScenes = await generateVideoScenes(title, description, imagesForApi);
             setScenes(generatedScenes);
+            
+            setIsLoadingAudioScript(true);
+            const script = await generateVideoAudioScript(generatedScenes);
+            setAudioScript(script);
+
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Falha ao gerar o roteiro.');
         } finally {
             setIsLoadingScenes(false);
+            setIsLoadingAudioScript(false);
         }
     };
     
@@ -123,6 +132,7 @@ export default function VideoGenerator({ productDescription }: VideoGeneratorPro
     };
 
     const canGenerateScenes = title.trim() && description.trim() && images.length > 0;
+    const baseFileName = getFormattedFileName(title);
     
     return (
         <div className="w-full max-w-2xl mx-auto bg-slate-800/50 p-6 md:p-8 rounded-2xl shadow-2xl shadow-slate-950/50 border border-slate-700 flex flex-col space-y-6">
@@ -147,8 +157,15 @@ export default function VideoGenerator({ productDescription }: VideoGeneratorPro
                                 <h4 className="font-semibold text-slate-300 text-sm truncate">{scene.title}</h4>
                                 {videoUrls[index] ? (
                                     <>
-                                        <video controls src={videoUrls[index]!} className="w-full rounded-lg aspect-[9/16] object-cover" />
-                                        <a href={videoUrls[index]!} download={`video-cena-${index + 1}.mp4`} className="text-xs inline-block bg-violet-600 text-white font-bold py-1.5 px-3 rounded-md hover:bg-violet-700 transition-colors">
+                                        <video 
+                                            key={videoUrls[index]}
+                                            controls 
+                                            preload="metadata"
+                                            src={videoUrls[index]!} 
+                                            className="w-full rounded-lg aspect-[9/16] object-cover" 
+                                            playsInline 
+                                        />
+                                        <a href={videoUrls[index]!} download={`${baseFileName}.video${index + 1}.mp4`} className="text-xs inline-block bg-violet-600 text-white font-bold py-1.5 px-3 rounded-md hover:bg-violet-700 transition-colors">
                                             Baixar
                                         </a>
                                     </>
@@ -213,7 +230,22 @@ export default function VideoGenerator({ productDescription }: VideoGeneratorPro
                                     <textarea value={scene.prompt} onChange={(e) => handleScenePromptChange(index, e.target.value)} className="w-full h-24 p-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-300 focus:ring-1 focus:ring-violet-500" />
                                 </div>
                             ))}
-                            <button onClick={handleVideoGeneration} className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">
+
+                            {isLoadingAudioScript && <Loader message="Gerando resumo de áudio..." />}
+
+                            {audioScript && !isLoadingAudioScript && (
+                                <div className="space-y-2 animate-fade-in mt-4 border-t border-slate-700 pt-4">
+                                    <h3 className="text-lg font-semibold text-slate-200">RESUMO PARA GRAVAR AUDIO</h3>
+                                    <p className="text-xs text-slate-400">Locução para um vídeo de ~48 segundos.</p>
+                                    <textarea 
+                                        readOnly 
+                                        value={audioScript} 
+                                        className="w-full h-48 p-3 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-300 whitespace-pre-wrap"
+                                    />
+                                </div>
+                            )}
+
+                            <button onClick={handleVideoGeneration} disabled={isLoadingAudioScript} className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:bg-slate-600">
                                 2. Gerar {scenes.length} Vídeos
                             </button>
                         </div>

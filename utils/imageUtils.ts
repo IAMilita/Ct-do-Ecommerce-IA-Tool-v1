@@ -80,3 +80,14 @@ export const processImage = (base64String: string): Promise<string> => {
         };
     });
 };
+
+export const getFormattedFileName = (title: string): string => {
+    if (!title) return 'produto';
+    return title
+        .trim()
+        .split(' ')
+        .slice(0, 2)
+        .join('_')
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '');
+};

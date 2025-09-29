@@ -143,9 +143,21 @@ export default function App() {
 
             <div ref={resultsRef}>
               {finalImages.length > 0 && (
-                <ImageGallery results={finalImages} onStartOver={handleClearGeneratedImages} />
+                <ImageGallery 
+                  results={finalImages} 
+                  onStartOver={handleClearGeneratedImages} 
+                  productTitle={productDescription}
+                />
               )}
             </div>
+          </div>
+          <div className="mt-16 text-center">
+            <button
+                onClick={() => window.location.reload()}
+                className="bg-slate-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-slate-700 transition-colors duration-300"
+            >
+                Recarregar Página
+            </button>
           </div>
         </div>
       </main>

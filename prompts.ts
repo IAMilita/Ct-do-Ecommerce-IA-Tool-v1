@@ -169,3 +169,38 @@ Sua resposta deve ser ESTRITAMENTE um objeto JSON válido, sem nenhum texto, exp
 
 Comece a gerar o array JSON agora.
 `;
+
+export const AUDIO_SCRIPT_GENERATION_PROMPT_TEMPLATE = (scenes: {title: string, prompt: string}[]): string => {
+    const sceneDetails = scenes.map((s, i) => `Cena ${i+1} (${s.title}):\n${s.prompt}`).join('\n\n');
+
+    return `
+**Tarefa:** Você é um locutor e roteirista profissional para vídeos de marketing digital.
+
+**Contexto:** Você recebeu um roteiro visual para 6 clipes de vídeo curtos sobre um produto. Sua missão é criar um único roteiro de áudio (locução) que conecte todas as 6 cenas de forma coesa e persuasiva.
+
+**Roteiro Visual das Cenas:**
+${sceneDetails}
+
+**Requisitos do Roteiro de Áudio:**
+1.  **Duração Total:** O roteiro de áudio completo deve ser projetado para ter uma duração total de aproximadamente 48 segundos quando lido em um ritmo natural e envolvente.
+2.  **Linguagem:** Use português do Brasil. A linguagem deve ser clara, direta e persuasiva, alinhada com o tom de marketing digital.
+3.  **Estrutura:** O roteiro deve fluir suavemente de uma cena para a outra, contando uma pequena história: problema, solução, benefícios, prova social, quebra de objeções e chamada para ação.
+4.  **Formato de Saída:** A saída deve ser um único bloco de texto. Divida o texto em parágrafos para facilitar a leitura e a gravação pelo locutor. Não adicione títulos como "Cena 1", apenas o texto da locução.
+5.  **Foco:** O áudio deve complementar o visual descrito nas cenas, não apenas descrevê-lo. Adicione emoção e ênfase nos pontos chave.
+
+**Exemplo de Saída (apenas para ilustração de formato):**
+Cansado de [problema da cena 1]? Chega de se preocupar com isso.
+
+Apresentamos a solução que você esperava. [Nome do produto] chegou para revolucionar a sua rotina.
+
+Com [benefício 1] e [benefício 2], você terá [resultado]. É a combinação perfeita de tecnologia e design.
+
+Milhares de clientes já aprovaram e não vivem mais sem. Veja o que eles estão dizendo!
+
+E se você está se perguntando se [objeção comum], a resposta é sim! Ele foi projetado para [resolver a objeção].
+
+Não perca mais tempo! Esta é a sua chance. Clique agora e garanta o seu com uma condição especial, porque o estoque é limitado!
+
+Comece a gerar o roteiro de áudio agora.
+`;
+}
